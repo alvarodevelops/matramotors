@@ -29,8 +29,8 @@ final class Llaves {
 
     Llaves(Matrains pl) {
         this.pl = pl;
-        kLlave = new NamespacedKey(pl, "llave");
-        kCerradura = new NamespacedKey(pl, "cerradura");
+        kLlave = NamespacedKey.fromString("matrains:llave");
+        kCerradura = NamespacedKey.fromString("matrains:cerradura");
     }
 
     static String codigoNuevo() {

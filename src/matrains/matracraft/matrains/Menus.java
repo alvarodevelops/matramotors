@@ -39,7 +39,7 @@ final class Menus {
         g.poner(16, Gui.boton(Material.BOOK, ChatColor.YELLOW + "Precios y facturas",
                 ChatColor.GRAY + "Luz: " + ChatColor.WHITE + String.format("%.3f €/kWh", pl.energia.precioLuz) + ChatColor.GRAY + " (PVPC real)",
                 ChatColor.GRAY + "Luz pagada por tus trenes: " + ChatColor.WHITE + m(factura(j0(p)))), null);
-        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("MATRAMOTORS"))
+        if (true)
             g.poner(18, Gui.boton(Material.ARROW, ChatColor.YELLOW + "← Menú de vehículos"), (j, c) -> j.performCommand("vehiculos"));
         g.poner(22, Gui.boton(Material.BARRIER, ChatColor.RED + "Cerrar"), (j, c) -> j.closeInventory());
         g.abrir(p);

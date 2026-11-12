@@ -191,7 +191,7 @@ final class Menus implements Listener {
                 "Llevas " + pl.tickets.validos(p) + "/" + pl.tickets.necesarios() + " tickets válidos",
                 "Con " + pl.tickets.necesarios() + ", el siguiente repostaje es gratis"), null);
         poner(m, 16, item(Material.BOOK, ChatColor.GREEN + "Ayuda", "Cómo se conduce y todos los comandos"), comando("coche ayuda"));
-        if (Bukkit.getPluginManager().isPluginEnabled("Matrains"))
+        if (pl.trenes != null)
             poner(m, 20, item(Material.FURNACE_MINECART, ChatColor.GOLD + "" + ChatColor.BOLD + "🚆 Trenes",
                     "Concesionario ferroviario, mis trenes,", "estaciones y líneas eléctricas"), q -> { q.closeInventory(); q.performCommand("tren menu"); });
         if (p.getVehicle() != null && pl.conduccion.esCoche(p.getVehicle()))
@@ -417,13 +417,11 @@ final class Menus implements Listener {
         if (n == 0) poner(m, 19, item(Material.PAPER, ChatColor.GRAY + "Nadie te ha prestado nada", "Si te dan la copia de una llave,", "el coche sale aquí"), null);
 
         // fila 3: trenes (Matrains)
-        org.bukkit.plugin.Plugin mt = Bukkit.getPluginManager().getPlugin("Matrains");
-        if (mt != null && mt.isEnabled()) {
+        if (pl.trenes != null) {
             poner(m, 27, item(Material.NAME_TAG, ChatColor.GOLD + "" + ChatColor.BOLD + "Trenes", "Tuyos y prestados (con llave)"), null);
             n = 0;
             try {
-                @SuppressWarnings("unchecked")
-                List<Object[]> trenes = (List<Object[]>) mt.getClass().getMethod("resumenTrenes", Player.class).invoke(mt, p);
+                List<Object[]> trenes = pl.trenes.resumenTrenes(p);
                 for (Object[] t : trenes) {
                     if (n >= 7) break;
                     @SuppressWarnings("unchecked") List<String> lore = (List<String>) t[1];
@@ -434,8 +432,8 @@ final class Menus implements Listener {
                     it.setItemMeta(meta);
                     poner(m, 28 + n++, it, q -> { q.closeInventory(); abrir.accept(q); });
                 }
-            } catch (ReflectiveOperationException | RuntimeException ex) {
-                pl.getLogger().warning("No he podido leer los trenes de Matrains: " + ex);
+            } catch (RuntimeException ex) {
+                pl.getLogger().warning("No he podido leer los trenes: " + ex);
             }
             if (n == 0) poner(m, 28, item(Material.PAPER, ChatColor.GRAY + "No tienes trenes en las vías", "Cómpralo en el menú de trenes →"), null);
             poner(m, 34, item(Material.FURNACE_MINECART, ChatColor.YELLOW + "Menú de trenes", "Concesionario, estaciones y líneas"),

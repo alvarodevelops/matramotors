@@ -52,7 +52,7 @@ final class Energia {
         YamlConfiguration y = YamlConfiguration.loadConfiguration(archivo);
         precioLuz = y.getDouble("euros-kwh", pl.getConfig().getDouble("combustible.luz-precio-defecto", 0.15));
         fechaLuz = y.getString("fecha", "");
-        Bukkit.getScheduler().runTaskTimerAsynchronously(pl, this::consultarLuz, 40L, 20L * 60 * 60);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(pl.host, this::consultarLuz, 40L, 20L * 60 * 60);
     }
 
     // ------------------------------------------------------------------ precios
@@ -80,7 +80,7 @@ final class Energia {
             double mwh = valores.get(Math.min(hora, valores.size() - 1)).getAsJsonObject().get("value").getAsDouble();
             double kwh = mwh / 1000.0;
             if (kwh <= 0 || kwh > 2) throw new IOException("precio raro " + kwh);
-            Bukkit.getScheduler().runTask(pl, () -> {
+            Bukkit.getScheduler().runTask(pl.host, () -> {
                 precioLuz = kwh;
                 fechaLuz = hoy + " " + hora + ":00";
                 YamlConfiguration y = new YamlConfiguration();
@@ -97,7 +97,7 @@ final class Energia {
     private void leerGasolina() {
         if (System.currentTimeMillis() - leidoGasolina < 300_000) return;
         leidoGasolina = System.currentTimeMillis();
-        var mm = Bukkit.getPluginManager().getPlugin("MATRAMOTORS");
+        var mm = pl.host;
         if (mm == null) return;
         YamlConfiguration precio = YamlConfiguration.loadConfiguration(new File(mm.getDataFolder(), "precio.yml"));
         gasoleoEuros = precio.getDouble("euros", gasoleoEuros);
@@ -237,7 +237,7 @@ final class Energia {
     private void vaciarBidon(Player p, ItemStack mano, double queda) {
         ItemStack uno = mano.clone();
         uno.setAmount(1);
-        org.bukkit.plugin.Plugin mm = org.bukkit.Bukkit.getPluginManager().getPlugin("MATRAMOTORS");
+        org.bukkit.plugin.Plugin mm = pl.host;
         boolean hecho = false;
         if (mm != null && mm.isEnabled()) {
             try {

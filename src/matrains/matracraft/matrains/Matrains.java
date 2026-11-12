@@ -33,7 +33,35 @@ import java.util.UUID;
  * Matrains — trenes de Matracraft. Parte 1: vías, física propia y conducción manual.
  * Los trenes se guardan en trenes.yml y solo se dibujan con algún jugador cerca.
  */
-public final class Matrains extends JavaPlugin implements Listener {
+public final class Matrains implements Listener {
+
+    /** Plugin anfitrión (MatraMotors): trenes ya no es un plugin aparte. */
+    final org.bukkit.plugin.java.JavaPlugin host;
+    private org.bukkit.configuration.file.YamlConfiguration cfg = new org.bukkit.configuration.file.YamlConfiguration();
+
+    public Matrains(org.bukkit.plugin.java.JavaPlugin host) { this.host = host; }
+
+    org.bukkit.configuration.file.YamlConfiguration getConfig() { return cfg; }
+    File getDataFolder() { return host.getDataFolder(); }
+    java.util.logging.Logger getLogger() { return host.getLogger(); }
+    org.bukkit.Server getServer() { return host.getServer(); }
+
+    /** Copia los datos de la carpeta vieja plugins/Matrains la primera vez (no borra nada). */
+    private void migrar() {
+        File vieja = new File(host.getDataFolder().getParentFile(), "Matrains");
+        if (!vieja.isDirectory()) return;
+        String[][] archivos = {{"config.yml", "config-trenes.yml"}, {"trenes.yml", "trenes.yml"}, {"datos.yml", "datos.yml"},
+                {"luz.yml", "luz.yml"}, {"estaciones.yml", "estaciones.yml"}, {"redes.yml", "redes.yml"}};
+        for (String[] a : archivos) {
+            File o = new File(vieja, a[0]), n = new File(host.getDataFolder(), a[1]);
+            if (!o.isFile() || n.exists()) continue;
+            try {
+                host.getDataFolder().mkdirs();
+                java.nio.file.Files.copy(o.toPath(), n.toPath());
+                host.getLogger().info("Trenes: copiado " + a[0] + " de plugins/Matrains. La carpeta vieja se puede borrar cuando compruebes que todo va bien.");
+            } catch (IOException ex) { host.getLogger().warning("Trenes: no he podido copiar " + a[0] + ": " + ex.getMessage()); }
+        }
+    }
 
     final Tipos tipos = new Tipos();
     Carga carga;
@@ -56,9 +84,11 @@ public final class Matrains extends JavaPlugin implements Listener {
     private File archivo;
     private int ticks;
 
-    @Override
-    public void onEnable() {
-        saveDefaultConfig();
+    public void activar() {
+        migrar();
+        File fc = new File(host.getDataFolder(), "config-trenes.yml");
+        if (!fc.exists()) host.saveResource("config-trenes.yml", false);
+        cfg = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(fc);
         tipos.leer(getConfig());
         archivo = new File(getDataFolder(), "trenes.yml");
         carga = new Carga(this);
@@ -76,18 +106,17 @@ public final class Matrains extends JavaPlugin implements Listener {
         if (rsp != null) eco = rsp.getProvider();
         else getLogger().warning("Sin Vault: la luz y el gasóleo no se cobran.");
         cargar();
-        getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(carga, this);
-        getServer().getPluginManager().registerEvents(red, this);
-        getServer().getPluginManager().registerEvents(estaciones, this);
-        getServer().getPluginManager().registerEvents(objetos, this);
-        getServer().getPluginManager().registerEvents(new Gui(), this);
-        Bukkit.getScheduler().runTaskTimer(this, this::tick, 1L, 1L);
-        getLogger().info("Matrains " + getPluginMeta().getVersion() + ": " + trenes.size() + " trenes.");
+        getServer().getPluginManager().registerEvents(this, host);
+        getServer().getPluginManager().registerEvents(carga, host);
+        getServer().getPluginManager().registerEvents(red, host);
+        getServer().getPluginManager().registerEvents(estaciones, host);
+        getServer().getPluginManager().registerEvents(objetos, host);
+        getServer().getPluginManager().registerEvents(new Gui(), host);
+        Bukkit.getScheduler().runTaskTimer(host, this::tick, 1L, 1L);
+        getLogger().info("Trenes: " + trenes.size() + " cargados.");
     }
 
-    @Override
-    public void onDisable() {
+    public void desactivar() {
         for (Tren t : trenes.values()) {
             t.v = 0;
             t.desaparecer();
@@ -199,7 +228,7 @@ public final class Matrains extends JavaPlugin implements Listener {
         e.setCancelled(true);
         String texto = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(e.message()).trim();
         Player p = e.getPlayer();
-        Bukkit.getScheduler().runTask(this, () -> {
+        Bukkit.getScheduler().runTask(host, () -> {
             if (texto.isEmpty() || texto.equalsIgnoreCase("cancelar")) { p.sendMessage(ChatColor.GRAY + "Cancelado."); return; }
             c.accept(ChatColor.stripColor(texto));
         });
@@ -267,7 +296,7 @@ public final class Matrains extends JavaPlugin implements Listener {
         if (e.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         boolean cadena = p.getInventory().getItemInMainHand().getType() == org.bukkit.Material.IRON_CHAIN;
         boolean agachado = p.isSneaking();
-        Bukkit.getScheduler().runTask(this, () -> {
+        Bukkit.getScheduler().runTask(host, () -> {
             if (!t.visible || c.base == null) return;
             if (cadena) {
                 if (!esDueno(p, t)) { p.sendMessage(ChatColor.RED + "Solo el dueño engancha y suelta vagones."); return; }
@@ -301,17 +330,16 @@ public final class Matrains extends JavaPlugin implements Listener {
         e.setCancelled(true);
         Tren t = tren(c);
         Player p = e.getPlayer();
-        if (t != null && p.isSneaking() && p.getVehicle() == null) Bukkit.getScheduler().runTask(this, () -> objetos.guardar(p, t));
+        if (t != null && p.isSneaking() && p.getVehicle() == null) Bukkit.getScheduler().runTask(host, () -> objetos.guardar(p, t));
     }
 
     // ------------------------------------------------------------------ comandos (pruebas del administrador)
 
-    @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
         if (!(s instanceof Player p)) { s.sendMessage("Solo en el juego."); return true; }
         if (cmd.getName().equalsIgnoreCase("tren")) {
             // /tren a secas lleva al menú único de vehículos; /tren menu, al de trenes
-            boolean unico = Bukkit.getPluginManager().isPluginEnabled("MATRAMOTORS");
+            boolean unico = true;
             if (a.length == 0 && unico) p.performCommand("vehiculos");
             else menus.principal(p);
             return true;
@@ -357,7 +385,6 @@ public final class Matrains extends JavaPlugin implements Listener {
         return true;
     }
 
-    @Override
     public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] a) {
         if (a.length == 1) return List.of("probar", "vagon", "subestacion", "luz", "quitar", "lista");
         if (a.length == 2 && a[0].equalsIgnoreCase("probar")) return new ArrayList<>(tipos.locos.keySet());

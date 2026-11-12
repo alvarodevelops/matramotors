@@ -99,7 +99,7 @@ final class Estaciones implements Listener {
 
     Estaciones(Matrains pl) {
         this.pl = pl;
-        this.kCampana = new NamespacedKey(pl, "campana");
+        this.kCampana = NamespacedKey.fromString("matrains:campana");
     }
 
     // ------------------------------------------------------------------ consultas
@@ -217,8 +217,8 @@ final class Estaciones implements Listener {
         });
         g.abrir(p);
         bordes(p, campana, lado);
-        Bukkit.getScheduler().runTaskLater(pl, () -> { if (p.isOnline()) bordes(p, campana, lado); }, 20L);
-        Bukkit.getScheduler().runTaskLater(pl, () -> { if (p.isOnline()) bordes(p, campana, lado); }, 40L);
+        Bukkit.getScheduler().runTaskLater(pl.host, () -> { if (p.isOnline()) bordes(p, campana, lado); }, 20L);
+        Bukkit.getScheduler().runTaskLater(pl.host, () -> { if (p.isOnline()) bordes(p, campana, lado); }, 40L);
     }
 
     private String nombreLibre() {
@@ -302,7 +302,7 @@ final class Estaciones implements Listener {
         }
         pendientes.put(k(b), p.getUniqueId());
         guardar();
-        Bukkit.getScheduler().runTask(pl, () -> menuCrear(p, b, pl.getConfig().getInt("estaciones.lado", 16)));
+        Bukkit.getScheduler().runTask(pl.host, () -> menuCrear(p, b, pl.getConfig().getInt("estaciones.lado", 16)));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -376,7 +376,7 @@ final class Estaciones implements Listener {
         if (!est.carteles.contains(k)) est.carteles.add(k);
         guardar();
         e.getPlayer().sendMessage(ChatColor.GREEN + "Panel de salidas de " + est.nombre + ".");
-        Bukkit.getScheduler().runTaskLater(pl, () -> paneles(est), 2L);
+        Bukkit.getScheduler().runTaskLater(pl.host, () -> paneles(est), 2L);
     }
 
     /** Actualiza los carteles [Salidas] de las estaciones con jugadores cerca. */

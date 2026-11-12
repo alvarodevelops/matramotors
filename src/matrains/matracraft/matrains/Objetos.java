@@ -35,15 +35,15 @@ final class Objetos implements Listener {
 
     Objetos(Matrains pl) {
         this.pl = pl;
-        kTipo = new NamespacedKey(pl, "tipo");
-        kAspecto = new NamespacedKey(pl, "aspecto");
-        kLoco = new NamespacedKey(pl, "loco");
-        kComb = new NamespacedKey(pl, "combustible");
-        kCarga = new NamespacedKey(pl, "carga");
-        kFluido = new NamespacedKey(pl, "fluido");
-        kCubos = new NamespacedKey(pl, "cubos");
-        kLlaveId = new NamespacedKey(pl, "llave-tren");
-        kCerr = new NamespacedKey(pl, "cerradura-tren");
+        kTipo = NamespacedKey.fromString("matrains:tipo");
+        kAspecto = NamespacedKey.fromString("matrains:aspecto");
+        kLoco = NamespacedKey.fromString("matrains:loco");
+        kComb = NamespacedKey.fromString("matrains:combustible");
+        kCarga = NamespacedKey.fromString("matrains:carga");
+        kFluido = NamespacedKey.fromString("matrains:fluido");
+        kCubos = NamespacedKey.fromString("matrains:cubos");
+        kLlaveId = NamespacedKey.fromString("matrains:llave-tren");
+        kCerr = NamespacedKey.fromString("matrains:cerradura-tren");
     }
 
     /** Aspecto al azar: el primero (el de siempre) sale más a menudo. */
@@ -186,7 +186,7 @@ final class Objetos implements Listener {
         pl.guardar();
         for (ItemStack it : objetos) p.getInventory().addItem(it).values().forEach(r -> p.getWorld().dropItem(p.getLocation(), r));
         p.sendMessage(ChatColor.YELLOW + "Guardado: " + objetos.size() + (objetos.size() == 1 ? " pieza." : " piezas."));
-        Bukkit.getScheduler().runTask(pl, p::updateInventory);
+        Bukkit.getScheduler().runTask(pl.host, p::updateInventory);
     }
 
     /** Dirección del raíl según hacia dónde mira el jugador. */

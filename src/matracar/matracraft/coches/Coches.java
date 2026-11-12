@@ -22,6 +22,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import matracraft.matrains.Matrains;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +31,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
-/** Clase principal del plugin Matracar: coches, llaves, matrículas y comandos /coche, /gasolina y /gasolinera. */
+/** Clase principal de MatraMotors: coches, barcos, trenes (Matrains), llaves, matrículas y comandos /coche, /gasolina y /gasolinera. */
 public final class Coches extends JavaPlugin {
     NamespacedKey kTier, kMatricula, kGasolina, kLlave, kCartel, kEstado, kTicket, kAspecto, kYaw, kCarga, kTanda, kSerie;
     final Map<String, Tier> tiers = new LinkedHashMap<>();
@@ -48,6 +50,8 @@ public final class Coches extends JavaPlugin {
     Bidones bidones;
     Gps gps;
     Taximetro taximetro;
+    /** Trenes (antes plugin Matrains, ahora parte de MatraMotors). */
+    Matrains trenes;
 
     @Override
     public void onEnable() {
@@ -106,6 +110,16 @@ public final class Coches extends JavaPlugin {
             if (!precio.tocaActualizar()) return;
             if (precio.actualizar()) Bukkit.getScheduler().runTask(this, gasolineras::actualizarCarteles);
         }, 40L, 36000L);
+
+        // trenes
+        if (Bukkit.getPluginManager().getPlugin("Matrains") != null) {
+            getLogger().severe("Hay un plugin Matrains.jar suelto: bórralo, los trenes ya vienen dentro de MatraMotors. Trenes desactivados.");
+        } else {
+            trenes = new Matrains(this);
+            try { trenes.activar(); }
+            catch (Exception | LinkageError ex) { getLogger().log(java.util.logging.Level.SEVERE, "No he podido arrancar los trenes", ex); trenes = null; }
+        }
+        getLogger().info("MatraMotors " + getPluginMeta().getVersion() + " listo.");
     }
 
     // el plugin se llamó "Coches" y luego "Matracar": copia los datos a la carpeta nueva la primera vez
@@ -134,6 +148,7 @@ public final class Coches extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (trenes != null) trenes.desactivar();
         if (carga != null) carga.cerrarTodo();
         if (carnet != null) carnet.guardar();
         if (gps != null) gps.pararTodo();
@@ -308,6 +323,10 @@ public final class Coches extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
         String nombre = cmd.getName().toLowerCase(Locale.ROOT);
+        if (nombre.equals("tren") || nombre.equals("matrains")) {
+            if (trenes == null) { s.sendMessage(ChatColor.RED + "Los trenes no están activos."); return true; }
+            return trenes.onCommand(s, cmd, label, args);
+        }
         if (nombre.equals("gasolina")) { infoGasolina(s); return true; }
         if (nombre.equals("gasolinera")) { gasolineras.comando(s, args); return true; }
         if (nombre.equals("vehiculos")) {
@@ -551,6 +570,7 @@ public final class Coches extends JavaPlugin {
     public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
         List<String> res = new ArrayList<>();
         String nombre = cmd.getName().toLowerCase(Locale.ROOT);
+        if (nombre.equals("tren") || nombre.equals("matrains")) return trenes == null ? res : trenes.onTabComplete(s, cmd, label, args);
         if (nombre.equals("gasolinera")) {
             if (args.length == 1) for (String o : List.of("crear", "renombrar", "borrar", "lista", "ir", "precio")) if (o.startsWith(args[0])) res.add(o);
             return res;

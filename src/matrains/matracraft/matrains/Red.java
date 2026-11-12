@@ -100,7 +100,7 @@ final class Red implements Listener {
 
     Red(Matrains pl) {
         this.pl = pl;
-        this.kSub = new NamespacedKey(pl, "subestacion");
+        this.kSub = NamespacedKey.fromString("matrains:subestacion");
     }
 
     static long clave(int x, int y, int z) {
@@ -300,7 +300,7 @@ final class Red implements Listener {
         }
         if (b.getType() == Material.NETHERRACK) {
             Set<Sub> d = afectadas(b);
-            if (!d.isEmpty()) Bukkit.getScheduler().runTask(pl, () -> recalcular(b.getWorld().getName(), d));
+            if (!d.isEmpty()) Bukkit.getScheduler().runTask(pl.host, () -> recalcular(b.getWorld().getName(), d));
         }
     }
 
@@ -334,7 +334,7 @@ final class Red implements Listener {
         if (!z.esDueno(p.getUniqueId()) && !admin) { e.setCancelled(true); p.sendMessage(ChatColor.RED + "Esta vía es de otro jugador."); return; }
         if (b.getType() == Material.NETHERRACK && lineaDeCable(b) != null) {
             Set<Sub> d = new HashSet<>(z.subs);
-            Bukkit.getScheduler().runTask(pl, () -> recalcular(b.getWorld().getName(), d));
+            Bukkit.getScheduler().runTask(pl.host, () -> recalcular(b.getWorld().getName(), d));
         }
     }
 
@@ -354,7 +354,7 @@ final class Red implements Listener {
         if (!s.dueno.equals(p.getUniqueId()) && !p.hasPermission("matrains.admin")) {
             e.setCancelled(true); p.sendMessage(ChatColor.RED + "Esta palanca es de " + s.nombre + ", de otro jugador."); return;
         }
-        Bukkit.getScheduler().runTask(pl, () -> {
+        Bukkit.getScheduler().runTask(pl.host, () -> {
             Linea l = lineaDe(s);
             boolean antes = l != null && l.luz;
             Set<Sub> d = new HashSet<>();

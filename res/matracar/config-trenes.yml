@@ -1,0 +1,82 @@
+# MatraMotors - trenes (antes Matrains). Los coches y barcos van en config.yml
+mundos-permitidos: [world, world_nether]
+
+fisica:
+  hueco-entre-vagones: 0.5      # bloques entre un vagon y el siguiente
+  curva-cerrada: 7.0            # velocidad maxima (bloques/s) en una curva de 90 grados
+  curva-diagonal: 0.75          # parte de la velocidad maxima en un tramo en diagonal (zigzag)
+  cuesta: 0.8                   # parte de la velocidad maxima subiendo una cuesta
+  rozamiento: 0.6               # lo que pierde (bloques/s cada segundo) sin acelerar
+  marcha-atras: 0.3             # parte de la velocidad maxima marcha atras
+  distancia-aparecer: 96        # el tren se dibuja si hay un jugador a esta distancia
+  distancia-desaparecer: 128
+
+# Combustible (parte 3)
+combustible:
+  carbon-max: 64               # piezas de carbon en el tender (un bloque de carbon cuenta 9)
+  carbon-bloques: 40           # bloques que se recorren con una pieza de carbon
+  gasoleo-litros: 300          # deposito de la diesel
+  gasoleo-por-bloque: 0.02     # litros por bloque (precio real de MATRAMOTORS, precio.yml)
+  distancia-surtidor: 10       # la diesel reposta a esta distancia de un surtidor de MATRAMOTORS
+  luz-precio-defecto: 0.15     # euros/kWh si no se puede leer el PVPC de Red Electrica
+  euros-a-dolares: 2.0         # 1 euro real = 2 Ⓜ, como la gasolina
+  luz-kwh-por-bloque:          # lo que gasta cada electrica por bloque (lo paga el dueño del tren)
+    electrica: 0.06
+    ave: 0.05
+    maglev: 0.04
+
+# Red electrica y proteccion (parte 3)
+red:
+  max-cable: 1000              # bloques de netherrack como mucho en una linea
+  subestaciones-por-jugador: 8
+
+# Estaciones y trenes automaticos (parte 4)
+estaciones:
+  lado: 16                     # tamaño inicial (se cambia en el menu entre 8 y 32)
+  por-jugador: 5
+automatico:
+  parte-estacion: 0.3          # parte del billete para el dueño de la estacion (si no es el del tren)
+  tarifa-max: 500
+  regalo-minimo: 500           # bloques de viaje para el regalo del coche Pullman (1 vez por hora)
+  restaurante-minimo: 300      # bloques de viaje para la comida del restaurante (1 vez por hora)
+  max-busqueda: 8000           # bloques de via que mira como mucho para buscar el camino
+
+# Concesionario (parte 5)
+precios:
+  campana-estacion: 2500
+  subestacion: 1500
+  carne-tren: 500              # se cobra una vez, con la primera compra
+limites:
+  trenes-por-jugador: 3
+
+# Locomotoras: velocidad (bloques/s), aceleracion y frenada (bloques/s cada segundo), traccion (peso que
+# arrastra sin perder velocidad), vagones (maximo), combustible (carbon, gasoleo o luz; se activa en la
+# parte 3), solo-pasajeros (no arrastra mercancias), precio (Ⓜ, para el concesionario de la parte 5).
+locomotoras:
+  vapor:     { nombre: "Locomotora de Vapor",  velocidad: 12, aceleracion: 0.8, frenada: 2.5, traccion: 6,  vagones: 4, combustible: carbon,  solo-pasajeros: false, precio: 4000 }
+  diesel:    { nombre: "Locomotora Diésel",    velocidad: 16, aceleracion: 1.0, frenada: 3.0, traccion: 10, vagones: 6, combustible: gasoleo, solo-pasajeros: false, precio: 9000 }
+  electrica: { nombre: "Locomotora Eléctrica", velocidad: 20, aceleracion: 1.4, frenada: 3.5, traccion: 14, vagones: 8, combustible: luz,     solo-pasajeros: false, precio: 18000 }
+  ave:       { nombre: "Alta Velocidad",       velocidad: 26, aceleracion: 1.8, frenada: 4.0, traccion: 5,  vagones: 4, combustible: luz,     solo-pasajeros: true,  precio: 35000 }
+  maglev:    { nombre: "Maglev",               velocidad: 32, aceleracion: 2.4, frenada: 5.0, traccion: 4,  vagones: 3, combustible: luz,     solo-pasajeros: true,  precio: 60000 }
+
+# Vagones: clase (mercancias o pasajeros), huecos (capacidad; la cisterna en cubos), acepta (todo, granel,
+# construccion, liquidos, comida, herramientas), peso vacio y lleno, asientos, moderno (los unicos que
+# enganchan alta velocidad y maglev), precio.
+vagones:
+  abierto:     { nombre: "Vagón abierto",        clase: mercancias, huecos: 27,  acepta: todo,         peso-vacio: 1.0, peso-lleno: 2.0, precio: 800 }
+  cerrado:     { nombre: "Furgón cerrado",       clase: mercancias, huecos: 54,  acepta: todo,         peso-vacio: 1.5, peso-lleno: 3.0, precio: 2000 }
+  tolva:       { nombre: "Vagón tolva",          clase: mercancias, huecos: 54,  acepta: granel,       peso-vacio: 1.5, peso-lleno: 2.5, precio: 3000 }
+  plataforma:  { nombre: "Plataforma de teleros",clase: mercancias, huecos: 54,  acepta: construccion, peso-vacio: 1.0, peso-lleno: 2.5, precio: 2500 }
+  cisterna:    { nombre: "Vagón cisterna",       clase: mercancias, huecos: 128, acepta: liquidos,     peso-vacio: 1.5, peso-lleno: 3.0, precio: 3500 }
+  frigorifico: { nombre: "Vagón frigorífico",    clase: mercancias, huecos: 27,  acepta: comida,       peso-vacio: 1.5, peso-lleno: 2.0, precio: 3000 }
+  garita:      { nombre: "Garita de freno",      clase: mercancias, huecos: 2,   acepta: herramientas, peso-vacio: 0.5, peso-lleno: 0.5, precio: 1500 }
+  basico:      { nombre: "Coche de madera",      clase: pasajeros,  asientos: 2, peso-vacio: 1.0, moderno: false, precio: 1200 }
+  cercanias:   { nombre: "Coche de cercanías",   clase: pasajeros,  asientos: 6, peso-vacio: 1.5, moderno: false, precio: 3500 }
+  premium:     { nombre: "Coche de primera",     clase: pasajeros,  asientos: 4, peso-vacio: 1.5, moderno: true,  precio: 7000 }
+  restaurante: { nombre: "Coche restaurante",    clase: pasajeros,  asientos: 2, peso-vacio: 1.5, moderno: true,  precio: 6000 }
+  regalo:      { nombre: "Coche Pullman",        clase: pasajeros,  asientos: 2, peso-vacio: 2.0, moderno: true,  precio: 10000 }
+  mirador:     { nombre: "Coche mirador",        clase: pasajeros,  asientos: 4, peso-vacio: 1.5, moderno: true,  precio: 8000 }
+
+# Copias de la llave de una locomotora (panel del tren, solo el dueño)
+llaves:
+  precio-copia: 500

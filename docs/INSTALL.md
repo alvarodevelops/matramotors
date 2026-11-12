@@ -3,17 +3,15 @@
 ## Requirements
 - A **Paper** server (built against the 1.21+ API; tested on Paper 26.2) running **Java 21 or newer**.
 - An economy: **Vault** (or VaultUnlocked) plus an economy plugin such as **EssentialsX**. Prices are charged through it.
-- Optional: **GriefPrevention** (stations and claims), **Magic**, **Multiverse-Core**. Both plugins start fine without them.
+- Optional: **GriefPrevention** (stations and claims), **Magic**, **Multiverse-Core**. MatraMotors starts fine without them.
 
 ## Steps
-1. Download the two jars from `releases/` and drop them in your server's `plugins/` folder:
-   `MATRAMOTORS-2.6.1.jar` and `Matrains-1.1.0.jar`. Matrains is optional; MATRAMOTORS works alone,
-   and when both are present `/vehiculos` shows cars, boats and trains in one menu.
-2. Start the server once. Each plugin creates its own folder and `config.yml`, then stop the server.
+1. Download `MatraMotors-<version>.jar` from `releases/` and drop it in your server's `plugins/` folder. It contains cars, boats and trains.
+2. Start the server once. The plugin creates `plugins/MatraMotors/` with `config.yml` (vehicles) and `config-trenes.yml` (trains). Stop the server.
 3. Edit the configs (see below) and start again.
-4. Give yourself admin: `coches.admin` (MATRAMOTORS) and `matrains.admin` (Matrains). Operators have both by default.
+4. Give yourself admin: `coches.admin` and `matrains.admin` (operators have both by default).
 
-## What you should change in `plugins/MATRAMOTORS/config.yml`
+## What you should change in `plugins/MatraMotors/config.yml` (cars and boats)
 | Key | Why |
 |---|---|
 | `mundos-permitidos`, `mundos-prohibidos` | Worlds where vehicles may be driven. |
@@ -23,7 +21,7 @@
 | `coches.*`, `barcos.*` | Every vehicle: price, speed, tank, consumption, seats. |
 | `seguros.*` | Insurance rates. |
 
-## What you should change in `plugins/Matrains/config.yml`
+## What you should change in `plugins/MatraMotors/config-trenes.yml` (trains)
 `mundos-permitidos`, the prices (`precios`, `locomotoras`, `vagones`), `limites`, and `combustible.euros-a-dolares`.
 Electric trains are billed with the Spanish PVPC electricity price (REE); if it can't be read, `luz-precio-defecto` is used.
 

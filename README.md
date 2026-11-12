@@ -1,6 +1,6 @@
-# Matracraft plugins
+# MatraMotors
 
-Custom plugins for **Matracraft**, a private Minecraft server (Paper 26.2) run for a small group of friends.
+Cars, boats and trains for Minecraft (Paper) with fuel and electricity priced from real-world data. Built for **Matracraft**, a private server run for a small group of friends (Paper 26.2).
 Designed and directed by the repository owner; built with AI assistance (Claude). Released under the MIT license.
 
 **MatraMotors** (`0.1.0-beta`, early access) is a single plugin with three parts:

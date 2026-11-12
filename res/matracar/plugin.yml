@@ -1,0 +1,32 @@
+name: MATRAMOTORS
+version: 2.6.1
+main: matracraft.coches.Coches
+api-version: '1.21'
+description: MATRAMOTORS (antes Matracar) - coches y embarcaciones con gasolina a precio real, seguros, matriculas y taximetro
+provides: [Matracar]
+author: Matracraft
+softdepend: [Vault, VaultUnlocked, Essentials, GriefPrevention, Magic]
+commands:
+  coche:
+    description: Comprar y gestionar coches
+    usage: /coche [comprar [tier] | tickets | ticket | matricula <NNNN LLL>]
+    aliases: [coches]
+  vehiculos:
+    description: Menu unico de vehiculos (coches, barcos y trenes)
+    aliases: [vehiculo, garaje, matramotors]
+  gasolina:
+    description: Precio de hoy de la gasolina
+  barco:
+    description: Embarcaciones (mismo menu que /coche)
+    aliases: [barcos, lancha]
+  taximetro:
+    description: Encender o apagar el taximetro del taxi en el que vas
+    aliases: [taxi]
+  gasolinera:
+    description: Crear o borrar surtidores (admin)
+    permission: coches.admin
+    usage: /gasolinera crear [nombre] | renombrar <nombre> | borrar [nombre] | lista | ir <nombre>
+permissions:
+  coches.admin:
+    description: Dar coches, crear surtidores
+    default: op

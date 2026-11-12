@@ -1,0 +1,323 @@
+# ---------------------------------------------------------------- MATRAMOTORS
+# Mundos donde SÍ se pueden sacar y conducir coches y embarcaciones (vacío = todos menos los prohibidos)
+mundos-permitidos:
+  - world
+# Mundos donde NO se pueden sacar ni conducir
+mundos-prohibidos:
+  - spawn
+
+# Promocion: guardar tickets impresos de repostajes de al menos 'importe-minimo' $;
+# con 'tickets-necesarios' encima, el siguiente repostaje es gratis hasta llenar.
+promocion:
+  tickets-necesarios: 10
+  importe-minimo: 5
+
+zona-horaria: Europe/Madrid
+
+# Matriculas: se dan por orden (0001 BBB, 0002 BBB...). Cambiarla por una a elegir cuesta:
+matricula:
+  precio-cambio: 2500
+
+# Litros que trae un coche recien comprado
+litros-al-comprar: 5
+
+gasolina:
+  # Datos oficiales del Ministerio (precio de la gasolina 95 E5), se consultan cada 6 horas.
+  # Se hace la media de las gasolineras que esten a menos de radio-km de este punto.
+  lugar: Madrid          # solo es un nombre para mostrar; cámbialo por tu zona
+  latitud: 40.4168      # EJEMPLO (Madrid): pon las coordenadas de tu zona
+  longitud: -3.7038
+  radio-km: 12
+  radio-nombres-km: 20     # de donde se sacan los nombres reales para las gasolineras nuevas
+  provincia: '28'          # codigo INE de provincia (28 = Madrid)
+  euros-a-dolares: 2.0     # 1 EUR real = 2 $ del server
+  precio-por-defecto-euros: 1.55   # si no hay conexion
+  litros-por-segundo: 2.0  # velocidad del surtidor
+  # Gasolineras náuticas: la gasolina de puerto es algo más cara (euros reales por litro, antes de convertir)
+  suplemento-nautico-euros: 0.0
+  # Alrededor de cada gasolinera náutica no se puede poner ni se forma hielo (bloques de radio)
+  radio-sin-hielo: 5
+
+# Daños de los vehículos (proporcionales). Cada vehículo los multiplica por su resistencia y su vida.
+danos:
+  choque-desde: 0.35        # fracción de la velocidad máxima a partir de la que un choque de frente hace daño
+  choque-maximo: 40         # % de daño de un choque de frente a tope (también es el tope por golpe)
+  espera-entre-golpes: 20   # ticks sin daño tras un golpe (rozar una pared = un solo golpe)
+  caida-desde: 3            # bloques de caída que no hacen daño
+  caida-por-bloque: 6       # % por cada bloque de más (20 bloques = siniestro); al agua no hace daño
+
+# Firme: la velocidad máxima de los coches según el suelo (1 = a tope). Asfalto = hormigón, caminos,
+# piedra pulida, ladrillos, losas y escaleras; tierra = tierra, hierba, cultivos; arena = arena, grava, nieve, barro.
+suelo:
+  activado: true
+  asfalto: 1.0
+  tierra: 0.6
+  arena: 0.4
+  otro: 0.85
+  todoterreno-sufre: 0.35   # el todoterreno solo nota el 35 % de la pérdida
+
+# Clima real (el del mundo, que sincroniza ClimaReal)
+clima:
+  activado: true
+  agarre-lluvia: 0.5        # con lluvia los coches frenan a la mitad y giran un 15 % peor
+  barcos-tormenta: 0.8      # con tormenta las embarcaciones van al 80 % (y La Goma vuelca antes)
+
+# Si a dos segundos por delante hay chunks sin generar, la velocidad se limita a esto (bloques/s)
+chunks:
+  velocidad-sin-generar: 10
+
+# Taxímetro (coche Taxi y Taxi Boat). Tarifas de ejemplo (taxi de una gran ciudad española, 2026), en euros; ajústalas.
+# 1 km = 'bloques-por-km' bloques (la misma escala que la gasolina) y se convierte a Ⓜ con gasolina.euros-a-dolares.
+taximetro:
+  bloques-por-km: 10
+  tarifa1: {bajada: 1.70, km: 1.16, minima: 4.62}   # laborables de 7:00 a 21:00
+  tarifa2: {bajada: 2.02, km: 1.43, minima: 5.66}   # noches, sábados, domingos y festivos
+  suplemento-nautico: 0.25   # Taxi Boat: +25 %
+  libre-minimo: 0.5          # el taxista puede poner su tarifa entre el 50 %
+  libre-maximo: 2.0          # y el 200 % de la oficial
+  margen: 0.20               # se retiene el precio + este margen por si el viaje se alarga
+  segundos-para-aceptar: 30
+  segundos-para-volver: 180  # bajarse y subirse al mismo taxi antes de esto sigue la misma carrera
+  segundos-sin-taxista: 120
+  radio-llegada: 30
+  porcentaje-llegada: 0.9
+
+# velocidad en bloques/segundo; aceleracion y frenada en bloques/tick por tick;
+# giro en grados por tick; deposito en litros; consumo en litros por bloque
+coches:
+  taxi:
+    nombre: Taxi
+    bloque: YELLOW_CONCRETE
+    precio: 11000
+    velocidad: 9
+    aceleracion: 0.01
+    frenada: 0.02
+    giro: 4.0
+    deposito: 35
+    consumo: 0.0078
+    carga: 9
+    plazas: 3
+    taxi: true
+  motocarro:
+    nombre: Motocarro
+    bloque: RED_CONCRETE
+    precio: 1500
+    velocidad: 4.5
+    aceleracion: 0.008
+    frenada: 0.015
+    giro: 5.0
+    deposito: 8
+    consumo: 0.0025
+    carga: 9             # la cajita de atras
+  tartana:
+    nombre: Tartana
+    bloque: BARREL
+    precio: 4000
+    velocidad: 6
+    aceleracion: 0.006
+    frenada: 0.010
+    giro: 3.0
+    deposito: 20
+    consumo: 0.005
+    carga: 9
+  turismo:
+    nombre: Turismo
+    bloque: COPPER_BLOCK
+    precio: 10000
+    velocidad: 9
+    aceleracion: 0.010
+    frenada: 0.020
+    giro: 4.5
+    deposito: 35
+    consumo: 0.0078
+    carga: 18
+  deportivo:
+    nombre: Deportivo
+    bloque: REDSTONE_BLOCK
+    precio: 25000
+    velocidad: 12
+    aceleracion: 0.016
+    frenada: 0.035
+    giro: 6.0
+    deposito: 50
+    consumo: 0.0143
+    carga: 9
+  furgoneta:
+    nombre: Furgoneta
+    bloque: CHEST
+    precio: 14000
+    velocidad: 7
+    aceleracion: 0.007
+    frenada: 0.012
+    giro: 3.5
+    deposito: 60
+    consumo: 0.0095
+    carga: 27            # huecos de carga (como un cofre)
+  quad:
+    nombre: Quad
+    bloque: ORANGE_CONCRETE
+    precio: 6000
+    velocidad: 6.5
+    aceleracion: 0.012
+    frenada: 0.02
+    giro: 5.5
+    deposito: 12
+    consumo: 0.004
+    todoterreno: true    # sube escalones de 1 bloque de tierra, arena, grava, nieve o piedra
+
+# Copias de llave (/coche copiallave con la llave en la mano)
+llaves:
+  precio-copia: 500
+
+# Carrocerias (hechas con bloques de Minecraft, sin pack de texturas)
+modelos:
+  giro-extra: 0               # si los coches se vieran de lado o al reves, pon 90, 180 o 270
+  matricula-al-reves: false   # si las matriculas no se ven, ponlo a true
+
+# Base invisible de los vehiculos (desde la 2.2.0 es un soporte de armadura invisible, no una vagoneta)
+base:
+  escala: 0.19     # tamano de la base: 0.19 deja al conductor a la misma altura que en la vagoneta de antes
+  gravedad: 0.04   # gravedad de la base (la de las vagonetas)
+
+# ---------------------------------------------------------------- Seguros
+# Cuota SEMANAL = precio del coche x este porcentaje (x bonus-malus).
+# Mensual = 4 semanas con descuento. Sin seguro en vigor no se puede conducir.
+seguros:
+  terceros: 0.015      # Mutua Central: paga los atropellos
+  ampliado: 0.03       # La Previsora: + 1 grua/semana, 5 L emergencia, 50 % reparaciones
+  todoriesgo: 0.05     # Aseguradora Norte: + grua gratis, 10 L, reparaciones gratis, coche nuevo en siniestro
+  descuento-mensual: 0.15
+  precio-grua: 300
+  franquicia-siniestro: 0.2
+  indemnizacion:
+    por-vida-jugador: 40   # $ por cada punto de vida quitado a un jugador
+    muerte-jugador: 800    # extra si muere
+    espera-minutos: 10     # como mucho un parte indemnizado por pareja conductor-perjudicado en este tiempo
+    tope-diario: 2000      # lo máximo que cobra un perjudicado al día
+  # Las primas van a un fondo común (seguros.yml -> fondo) y las indemnizaciones salen de él;
+  # si el fondo no llega, pone el resto el titular de la póliza. Así el seguro no crea dinero.
+  # valores de animales (si no se pone, se usan los de fabrica: vaca 150, caballo 800, aldeano 1500...)
+  valores: {}
+
+atropellos:
+  desde-velocidad: 4       # bloques/s a partir de los que hace daño
+  dano-por-velocidad: 0.8  # vida quitada = (velocidad - 3) x esto  (a 12 bl/s: 7,2 = 3,6 corazones)
+
+averias:
+  desgaste-por-bloque: 0.0025  # 1 % cada 400 bloques
+  choque-desde: 5              # bloques/s a partir de los que un choque daña el coche
+  choque-factor: 3             # % de daño = (velocidad - 4) x esto
+  coste-reparacion: 0.15       # reparar del 0 al 100 % cuesta el 15 % del precio del coche
+
+# Desguace (/coche desguace): paga hasta esta parte del precio nuevo, segun el estado del coche
+desguace:
+  maximo: 0.5
+
+# Claxon (espacio al conducir). Cada vehiculo pita distinto.
+claxon:
+  alcance: 1.5   # hasta donde se oye: 1 = 16 bloques, 1.5 = 24, 2 = 32
+  fuerza: 3      # lo fuerte que suena de cerca (sonidos superpuestos, 1 a 6)
+
+# ---------------------------------------------------------------- Embarcaciones
+# Mismas unidades que los coches. plazas = conductor + pasajeros; carga < 9 = guantera de 5 huecos.
+# resistencia: multiplica los daños (más = más frágil); vida: 100 normal, 180 aguanta 1,8 veces más.
+barcos:
+  pedalo:
+    nombre: El Pedalo
+    bloque: LIME_CONCRETE
+    precio: 1200
+    velocidad: 4
+    aceleracion: 0.033
+    frenada: 0.04
+    giro: 1.5
+    deposito: 0          # sin motor: no gasta gasolina
+    consumo: 0
+    carga: 3
+    plazas: 1
+    vida: 60
+    resistencia: 1.0
+  motoagua:
+    nombre: Moto de agua
+    bloque: CYAN_CONCRETE
+    precio: 6500
+    velocidad: 13
+    aceleracion: 0.0217
+    frenada: 0.035
+    giro: 6.0
+    deposito: 20
+    consumo: 0.0026
+    carga: 2
+    plazas: 2
+    vida: 70
+    resistencia: 1.1
+  barco:
+    nombre: Barco
+    bloque: WHITE_CONCRETE
+    precio: 9000
+    velocidad: 10
+    aceleracion: 0.00625
+    frenada: 0.012
+    giro: 3.5
+    deposito: 80
+    consumo: 0.0042
+    carga: 18
+    plazas: 4
+    vida: 140
+    resistencia: 0.8
+  taxiboat:
+    nombre: Taxi Boat
+    bloque: YELLOW_CONCRETE
+    precio: 15000
+    velocidad: 12
+    aceleracion: 0.0075
+    frenada: 0.014
+    giro: 2.75
+    deposito: 60
+    consumo: 0.0042
+    carga: 9
+    plazas: 8
+    vida: 120
+    resistencia: 0.9
+    taxi: true
+  goma:
+    nombre: La Goma
+    bloque: GRAY_CONCRETE
+    precio: 18000
+    velocidad: 15
+    aceleracion: 0.015
+    frenada: 0.02
+    giro: 4.5
+    deposito: 50
+    consumo: 0.0056
+    carga: 36
+    plazas: 4
+    vida: 50
+    resistencia: 1.5
+  patrullero:
+    nombre: Patrullero
+    bloque: BLUE_CONCRETE
+    precio: 28000
+    velocidad: 17
+    aceleracion: 0.02125
+    frenada: 0.035
+    giro: 5.0
+    deposito: 70
+    consumo: 0.0059
+    carga: 18
+    plazas: 4
+    vida: 180
+    resistencia: 0.6
+  hipersonica:
+    nombre: La Hipersónica
+    bloque: CYAN_CONCRETE
+    precio: 45000
+    velocidad: 20
+    aceleracion: 0.0167
+    frenada: 0.03
+    giro: 3.0
+    deposito: 63
+    consumo: 0.0058
+    carga: 9
+    plazas: 2
+    vida: 100
+    resistencia: 1.2

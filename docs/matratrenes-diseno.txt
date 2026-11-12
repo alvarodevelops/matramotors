@@ -1,0 +1,263 @@
+MatraTrenes — Documento de Diseño
+Plugin: MatraTrenes (nombre provisional, dentro de la familia MatraMotors)
+Plataforma: Paper 26.2
+Concepto: Transporte ferroviario automático y manual, con infraestructura creada por jugadores, economía entre jugadores y red eléctrica facturable.
+
+1. Concepto general
+Los jugadores crean sus propias vías, estaciones y líneas eléctricas. Los trenes pueden ser automáticos (recorren rutas predefinidas sin conductor) o manuales (conducidos por un jugador). El dueño de la infraestructura puede cobrar a otros por usarla (peaje de estación, tarifa de tren, factura eléctrica).
+
+Pilares:
+
+Pilar	Descripción
+Automatización	Trenes sin conductor con rutas y paradas configurables
+Infraestructura de jugador	Vías, estaciones y líneas eléctricas creadas por players
+Economía entre jugadores	Peajes, tarifas y facturación eléctrica
+Energía	Línea de bloques de netherrack como "cable" facturable
+Protección	GriefPrevention para vías, estaciones y tendidos
+Componentes	Cabezas + vagones (mercancías/pasajeros) con tiers
+2. Sistema eléctrico (plugin)
+2.1 Bloques implicados
+Bloque	Función	Coste
+Motor (bloque custom, ej. bloque de cobre con PDC)	Fuente de energía. Tiene palanca ON/OFF. Define el origen de la línea.	Barato
+Receptor (bloque custom, ej. bloque de hierro con PDC)	En la estación. Define el punto final.	Barato
+Bloque de Netherrack	Conductor físico del tendido.	Muy barato (abundante en el Nether)
+2.2 Lógica de conexión
+El plugin no escanea redstone ni polvo. Solo verifica que exista una línea continua de Bloques de Netherrack entre el Motor y el Receptor.
+
+La comprobación es trivial: recorrer la lista de bloques de netherrack y confirmar que no hay huecos.
+
+Las antorchas de redstone y los raíles activadores NO forman parte del sistema eléctrico. Son puramente vanilla, para que los minecarts se muevan físicamente. El plugin no los valida ni los factura.
+
+2.3 Activación y cacheo
+Al pulsar la palanca del Motor, el plugin comprueba la continuidad de la línea de netherrack.
+
+Si es válida, la línea queda "energizada" y se guarda en datos persistentes: coordenadas de los bloques de netherrack, Motor, Receptor, dueño, estado.
+
+No se re-escanea en cada viaje. Solo se recalcula si:
+
+El jugador pulsa la palanca otra vez.
+
+Se rompe o coloca un bloque de netherrack dentro del tendido guardado.
+
+Se rompe el Motor o el Receptor.
+
+Límite de longitud configurable (por defecto 1000 bloques) para evitar abusos.
+
+2.4 Facturación eléctrica
+Fórmula:
+
+text
+Coste del viaje = (Distancia recorrida en bloques) × (Consumo del tier de cabeza) × (Precio por unidad eléctrica)
+Precio por unidad eléctrica: configurable, ligado al PVPC español (~0,22 €/kWh como referencia).
+
+Equivalencia sugerida: 1 unidad eléctrica = 0,01 € (multiplicador configurable para el admin).
+
+Se descuenta del balance del dueño del Motor (o del dueño de la estación de origen, configurable).
+
+Se genera un ítem "Factura eléctrica" consultable con historial de consumos.
+
+2.5 Protección con GriefPrevention
+Al energizarse una línea, se crea un claim automático que cubre el bloque de netherrack y 5×5 en altura y anchura de diámetro a lo largo del tendido.
+
+Motores y Receptores también quedan protegidos.
+
+Gratuito por ahora, configurable a futuro.
+
+3. Estaciones
+3.1 Creación
+Comando: /tren estacion crear <nombre>
+
+Flujo:
+
+El jugador coloca un bloque de campana en el centro de la estación.
+
+Ejecuta el comando y define el área (entre 8×8 y 32×32) con una herramienta (palo dorado o similar).
+
+El plugin valida que no se solape con otra estación.
+
+Se crea la estación y se registra.
+
+3.2 ID interno
+Cada estación recibe un ID numérico único autogenerado (ej. EST-0001), independiente del nombre.
+
+El nombre es para mostrar; el ID es para el sistema interno (rutas, facturación, referencias).
+
+Se guarda en PersistentDataContainer del bloque de campana + registro global en JSON/SQLite.
+
+3.3 Detección por campana
+El bloque de campana es el marcador visual de la estación.
+
+Si se rompe, la estación queda "huérfana" hasta que el dueño reponga la campana.
+
+3.4 Tarifas
+El dueño de la estación puede definir una tarifa de acceso (opcional, independiente de la tarifa del tren).
+
+Reparto sugerido (configurable): dueño del tren 70%, dueño de la estación 30% (si son distintos).
+
+4. Cabezas (locomotoras)
+4.1 Dos tipos
+Tipo	Control	Función
+Automática	Dueño configura ruta	Recorre estaciones en bucle o ida/vuelta, para X segundos en cada parada, cobra tarifa a pasajeros
+Manual	Jugador conduce	Control directo (WASD), solo funciona si la línea eléctrica está activa
+4.2 Tiers de cabezas (5)
+Tier	Nombre	Velocidad (bloques/seg)	Aceleración	Resistencia (HP)	Vagones máx.	Consumo eléctrico (unidades/bloque)	Coste de fabricación
+1	Locomotora de Vapor	10	Baja	40	2	2.0	Barato (hierro + carbón)
+2	Locomotora Diésel	14	Media	60	3	1.5	Medio (hierro + cobre)
+3	Locomotora Eléctrica	18	Media-alta	80	4	1.0	Caro (cobre + redstone)
+4	Locomotora de Alta Velocidad	24	Alta	60	3	0.8	Muy caro (oro + diamante)
+5	Maglev	30	Muy alta	50	2	0.5	Extremo (diamante + esmeralda)
+Lógica: Los tiers altos ganan velocidad y eficiencia energética, pero sacrifican capacidad de arrastre y resistencia. Hay decisiones reales: velocidad pura (Tier 5) vs. tren de carga masivo (Tier 3 con 4 vagones).
+
+5. Vagones
+5.1 Mercancías (4 tiers)
+Tier	Nombre	Slots de inventario	Peso (afecta velocidad)	Especialización
+1	Vagón Genérico	27 (1 cofre)	+5% lentitud	Ninguna
+2	Vagón Reforzado	54 (cofre doble)	+10%	Ninguna
+3	Vagón Especializado	54	+5%	Solo acepta 1 tipo de material (ej. arena, piedra, mineral)
+4	Vagón de Líquidos	27	+8%	Solo acepta cubos/fluidos (lava, agua, pociones)
+5.2 Pasajeros (4 tiers)
+Tier	Nombre	Asientos	Bonus
+1	Vagón Básico	2	Ninguno
+2	Vagón Amplio	4	Ninguno
+3	Vagón Premium	4	Regeneración I mientras viajas
+4	Vagón de Regalo	2	Al llegar a destino, cada pasajero recibe 1 ítem aleatorio (poción alcohólica custom con buff o valor de venta). Cooldown de 1 hora por jugador.
+5.3 Acoplamiento
+Cabezas y vagones se acoplan con clic derecho (similar a TrainCarts).
+
+El tren se mueve como una unidad.
+
+6. Rutas automáticas
+6.1 Configuración
+El dueño define en la estación de origen una lista ordenada de paradas: [EST-0002, EST-0003] y modo:
+
+Ida y vuelta (A→B→C→B→A)
+
+Solo ida
+
+Bucle (A→B→C→A)
+
+Se guarda vinculada al ID interno de la cabeza.
+
+6.2 Comportamiento
+Al llegar a cada estación, el tren se detiene un tiempo configurable (15s → 30s → 60s → 120s).
+
+Mientras está parado, los jugadores pueden subir o bajar.
+
+Al terminar el tiempo, continúa a la siguiente parada.
+
+Si es la última parada, invierte el sentido o vuelve al inicio según el modo.
+
+6.3 Tarifas de pasajeros
+El dueño de la cabeza automática define tarifa de subida (fija por jugador).
+
+Modo de cobro: al subir (inmediato) o al bajar (al llegar a destino).
+
+Si el jugador no tiene saldo, se le deniega el acceso.
+
+7. Interfaz de usuario (estilo MatraPanel)
+7.1 Menú principal: /tren o /matratren
+Tipo: Cofre de 27 slots (3 filas).
+Título: &8[&6MatraTrenes&8] &7Panel Principal
+
+Slot	Ítem	Acción
+10	Brújula — "Mis Estaciones"	Lista de estaciones del jugador (GUI paginada)
+12	Minecart — "Mis Trenes"	Lista de cabezas/vagones del jugador
+14	Redstone — "Mis Líneas Eléctricas"	Lista de Motores y estado (ON/OFF, consumo acumulado)
+16	Libro — "Facturas"	Historial de consumo eléctrico
+22	Barrera — "Cerrar"	Cierra el menú
+7.2 GUI: Lista de Estaciones
+Tipo: Cofre de 54 slots (6 filas), paginado.
+Título: &8[&6MatraTrenes&8] &7Estaciones (Página %d)
+
+Cada estación es un ítem (Campana) con:
+
+Nombre: &e%nombre%
+
+Lore: &7ID: &f%id%, &7Dueño: &f%jugador%, &7Coordenadas: &f%x, %y, %z, &7Trenes activos: &f%d
+
+Clic izquierdo: ver detalles / teleportar (si tiene permiso).
+
+Clic derecho: gestionar (solo dueño): renombrar, eliminar, ajustar tarifa.
+
+Flechas de paginación en slots 48 y 50.
+
+7.3 GUI: Detalle de Estación
+Tipo: Cofre de 27 slots.
+Título: &8[&6MatraTrenes&8] &7%nombre%
+
+Slot	Ítem	Info
+4	Campana (nombre de estación)	Lore con ID, dueño, coordenadas
+10	Minecart — "Trenes que paran aquí"	Lista de trenes con ruta que incluye esta estación
+12	Redstone — "Estado eléctrico"	"Conectada a red: Sí/No", "Motor asociado: %id%"
+14	Libro — "Tarifa de acceso"	"Actual: %precio% monedas" (solo dueño puede editar)
+16	Cofre — "Rutas configuradas"	Lista de rutas que usan esta estación
+22	Flecha — "Volver"	Vuelve al menú principal
+7.4 GUI: Configuración de Ruta (Cabeza Automática)
+Tipo: Cofre de 27 slots.
+Título: &8[&6MatraTrenes&8] &7Ruta: %nombre_cabeza%
+
+Slot 10: Libro y Pluma — "Definir paradas" (abre chat para escribir IDs: EST-0001, EST-0003, EST-0005).
+
+Slot 12: Reloj — "Tiempo de parada" (clic para ciclar: 15s → 30s → 60s → 120s).
+
+Slot 14: Brújula — "Modo de ruta" (clic para ciclar: Ida y vuelta / Solo ida / Bucle).
+
+Slot 16: Poción — "Tarifa de pasajero" (abre chat para escribir el precio).
+
+Slot 22: Flecha — "Volver".
+
+7.5 Coherencia visual (MatraPanel style)
+Bordes: Cristal gris (GRAY_STAINED_GLASS_PANE) en todos los slots no usados.
+
+Títulos: Siempre con el prefijo &8[&6MatraTrenes&8].
+
+Items interactivos: Materiales reconocibles (brújula, minecart, redstone, libro).
+
+Lore: &7 texto normal, &e valores importantes, &a acciones positivas, &c advertencias.
+
+8. Separación de sistemas (importante)
+Sistema	Conductor	Quién lo gestiona	Para qué
+Eléctrico	Bloques de Netherrack	El plugin	Facturación, rutas automáticas, validación de línea
+Propulsión	Raíles activadores + antorchas de redstone	Vanilla (Minecraft)	Que el minecart se mueva físicamente
+El plugin no escanea antorchas ni raíles activadores. Solo la línea de netherrack.
+
+La facturación se basa en la longitud de la línea de netherrack.
+
+Si el jugador quiere que su tren se mueva, él se encarga de poner raíles activadores y antorchas. El plugin no lo valida ni lo cobra.
+
+9. Persistencia de datos
+Estaciones: JSON/SQLite con ID, nombre, dueño, coordenadas, área, mundo.
+
+Líneas eléctricas: ID, Motor, Receptor, lista de coordenadas de bloques de netherrack, dueño, estado, consumo acumulado.
+
+Rutas: ID de cabeza, lista de IDs de estación, modo, tiempo de parada, tarifa.
+
+Facturas: historial por dueño de Motor (fecha, distancia, consumo, coste).
+
+(El formato exacto de JSON/SQLite queda pendiente de definir en otra sesión.)
+
+10. Pendiente / próximos pasos
+Formato de datos (JSON/SQLite) para estaciones, líneas, rutas y facturas.
+
+Valores numéricos finales (precios de peaje, multiplicador eléctrico, cooldowns).
+
+Lógica de bloques custom (cómo detectar Motor/Receptor con PersistentDataContainer).
+
+GUI de creación de estación (herramienta de selección de área, validación de solape).
+
+Integración con GriefPrevention (creación automática de claims por segmentos o bounding box).
+=== Decisiones del admin (11/11/2026 19:34) ===
+1. Física propia del plugin sobre raíles (no la vanilla), para permitir las velocidades de los tiers.
+2. Conducción manual: adelante, atrás, pitar y bajarse (poco más).
+3-4. Cable = netherrack (nadie lo quiere). Sin GriefPrevention: el plugin protege cada bloque de la línea (vía + netherrack debajo) y un espacio de 3x3 alrededor del cable (para antorchas de redstone del dueño o túneles decorativos).
+5. Vagón de Regalo: trayecto mínimo (lo más viable).
+6. Precio de la luz real (PVPC), como la gasolina.
+7. Trenes automáticos solo con jugadores cerca; caso clave: mandar vagones de mercancías programados de la mina a casa; el tren se queda en destino hasta que el dueño lo descargue o se suba para volver.
+Pendiente: el admin enviará todo, con referencias, antes de empezar. NO empezar aún.
+(19:39) Protección total: nadie más (ni el dueño) puede usar la zona para exploits; solo decorar, cables, usar trenes. Prohibido a otros: poner vehículos en la vía, romper, lava/fluidos, etc. El cable NO se puede romper por nadie ajeno. Opcional: bloque/parada de emergencia cada X bloques por si alguien queda tirado.
+Simulación fuera de vista: el tren debe aparecer moviéndose en cuanto haya alguien cerca (poder verlo volver, posibilidad de que alguien se suba en marcha). Pendiente: fotos de trenes de referencia.
+(19:47) Desvíos: automáticos recalculan solos; manuales eligen rama con A/D al llegar a la Y (si no pulsan, respeta la palanca/curva vanilla que puso el dueño). Contemplar cualquier error en la protección.
+(19:59) Referencias de locomotoras en ideas/trenes-ref/ (loco1 vapor: GNR 85 azul con frontal negro y bandas rojas; loco2 diésel: Union Pacific amarilla y Rio Grande amarilla/plata; loco3 eléctrica: rusa roja/gris y Stadler FLIRT azul/blanco; loco4 alta velocidad: AVE S-103 blanco/morado y Avril Renfe; loco5 maglev: Shinkansen E5 verde/blanco/rosa y SCMaglev L0 blanco/azul). Faltan fotos de vagones.
+PARTÍCULAS (todos los vehículos, MATRAMOTORS también): coches humo de escape/contaminación; barcos splash de agua; trenes vapor/diésel humo, eléctricos chispas eléctricas en ruedas/pantógrafo.
+(20:01) Skins de locomotoras: hasta 6 por cabeza, muy variadas: color dominante (p.ej. blanco AVE) pero cambiar tinte del cristal, puertas, líneas de vinilo, etc.
+(20:09) Fotos de vagones de mercancías en trenes-ref/mercancias-*.png (furgón cerrado marrón, abierto de borde alto, plataforma con teleros, cisterna gris/franja azul, tolva roja, frigorífico blanco, garita verde). PROPUESTA DE STATS enviada al admin en el chat (ver respuesta 20:09): tracción vs peso, combustibles, cantones, enganche con cadena.

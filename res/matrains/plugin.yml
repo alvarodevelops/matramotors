@@ -1,0 +1,17 @@
+name: Matrains
+version: 1.1.0
+main: matracraft.matrains.Matrains
+api-version: '1.21'
+author: Matracraft
+description: "Trenes de Matracraft"
+softdepend: [MATRAMOTORS, Vault, Multiverse-Core, GriefPrevention]
+commands:
+  tren:
+    description: Menu de trenes (concesionario, mis trenes, estaciones y lineas)
+    aliases: [trenes, matratren]
+  matrains:
+    description: Pruebas de trenes (administrador)
+    permission: matrains.admin
+permissions:
+  matrains.admin:
+    default: op
